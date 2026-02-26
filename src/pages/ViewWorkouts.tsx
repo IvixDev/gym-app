@@ -23,7 +23,7 @@ export default function ViewWorkouts() {
         enabled: !!selectedId
     });
 
-    const { data: lastSession = {} } = useQuery({
+    const { data: lastSession = {}, isFetching: loadingSession } = useQuery({
         queryKey: ['last-session', selectedId, true],
         queryFn: () => getLastSessionData(selectedId, true),
         enabled: !!selectedId
@@ -116,7 +116,18 @@ export default function ViewWorkouts() {
                                                     </div>
                                                 </div>
 
-                                                {lastSession[ex.id] && (
+                                                {loadingSession && !lastSession[ex.id] ? (
+                                                    <div style={{
+                                                        marginTop: 'var(--space-sm)',
+                                                        padding: 'var(--space-sm)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                    }}>
+                                                        <span className="spinner" />
+                                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Cargando sesión…</span>
+                                                    </div>
+                                                ) : lastSession[ex.id] ? (
                                                     <div style={{
                                                         marginTop: 'var(--space-sm)',
                                                         padding: 'var(--space-sm)',
@@ -133,7 +144,7 @@ export default function ViewWorkouts() {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                )}
+                                                ) : null}
                                             </div>
                                         </div>
                                     ))}

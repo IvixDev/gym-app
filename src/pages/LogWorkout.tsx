@@ -71,6 +71,17 @@ function ExerciseLogForm({
                 </div>
             </div>
 
+            {/* Column headers */}
+            <div className="set-row" style={{ marginBottom: '4px' }}>
+                <span className="set-label" />
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                    <span className="label-xs">KG</span>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                    <span className="label-xs">REPS</span>
+                </div>
+            </div>
+
             {Array.from({ length: exercise.sets }, (_, i) => {
                 const prevSet = lastSession?.sets[i];
                 return (
@@ -78,7 +89,6 @@ function ExerciseLogForm({
                         <div className="set-row">
                             <span className="set-label">S{i + 1}</span>
                             <div style={{ flex: 1 }} className="set-input-wrapper">
-                                <label className="label-xs">kg</label>
                                 {prevSet !== undefined && (
                                     <div className="set-previous-hint">{prevSet.weight}kg</div>
                                 )}
@@ -94,9 +104,8 @@ function ExerciseLogForm({
                                 />
                             </div>
                             <div style={{ flex: 1 }} className="set-input-wrapper">
-                                <label className="label-xs">reps</label>
                                 {prevSet !== undefined && (
-                                    <div className="set-previous-hint">{prevSet.reps} reps</div>
+                                    <div className="set-previous-hint">{prevSet.reps}</div>
                                 )}
                                 <input
                                     type="text"
