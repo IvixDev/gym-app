@@ -72,7 +72,9 @@ export default function LogWorkout() {
     const { data: doneToday = new Set<string>(), isFetching: isFetchingDone } = useQuery({
         queryKey: ['done-today', todayLog?.id],
         queryFn: () => getDoneExerciseIds(todayLog!.id),
-        enabled: !!todayLog?.id
+        enabled: !!todayLog?.id,
+        // Ensure the result is always a proper Set (JSON serialization loses Set type)
+        select: (data): Set<string> => data instanceof Set ? data : new Set(Array.from(data as any)),
     });
 
     // Hide exercise cards while we're confirming today's completion status

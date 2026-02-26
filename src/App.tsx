@@ -21,11 +21,24 @@ const persister = createSyncStoragePersister({
   storage: window.localStorage,
 });
 
+// Queries that should NOT be persisted to localStorage:
+// - 'today-log': changes daily, and its absence triggers a new session
+// - 'done-today': returns a Set which doesn't serialize to JSON correctly
+const EPHEMERAL_KEYS = ['today-log', 'done-today'];
+
 export default function App() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{
+        persister,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => {
+            const key = query.queryKey[0] as string;
+            return !EPHEMERAL_KEYS.includes(key);
+          },
+        },
+      }}
     >
       <Routes>
         <Route element={<Layout />}>
