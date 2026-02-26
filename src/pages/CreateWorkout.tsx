@@ -82,7 +82,6 @@ export default function ManageWorkouts() {
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [selectedId, setSelectedId] = useState<string>('new');
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [loading, setLoading] = useState(true);
 
     // Form states
     const [newWorkoutName, setNewWorkoutName] = useState('');
@@ -103,7 +102,7 @@ export default function ManageWorkouts() {
     }, []);
 
     useEffect(() => {
-        fetchAll().finally(() => setLoading(false));
+        fetchAll();
     }, [fetchAll]);
 
     useEffect(() => {
@@ -128,7 +127,7 @@ export default function ManageWorkouts() {
         msg('✅ Creado');
         setNewWorkoutName('');
         setNewExercises([]);
-        const updated = await fetchAll();
+        await fetchAll();
         setSelectedId(w.id);
     };
 
