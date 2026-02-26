@@ -5,5 +5,10 @@
       <stop offset="100%" stop-color="#6d28d9"/>
     </linearGradient>
   </defs>
-  <text y="85" x="50" font-size="80" text-anchor="middle" font-family="sans-serif">🏋️</text>
+  <!-- Barbell path simplified for icon -->
+  <path d="M15 50h70M15 35v30M5 40v20M85 35v30M95 40v20" 
+        stroke="url(#g)" 
+        stroke-width="8" 
+        stroke-linecap="round" 
+        fill="none" />
 </svg>
