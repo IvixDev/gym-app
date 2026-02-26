@@ -1,34 +1,33 @@
 import { useState, useEffect } from 'react';
-import { getWorkouts, getExercisesByWorkout } from '../lib/api';
-import type { Workout, Exercise } from '../types';
+import { useQuery } from '@tanstack/react-query';
+import { getWorkouts, getExercisesByWorkout, getLastSessionData } from '../lib/api';
 
 export default function ViewWorkouts() {
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [selectedId, setSelectedId] = useState<string>('');
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [loadingWorkouts, setLoadingWorkouts] = useState(true);
-    const [loadingExercises, setLoadingExercises] = useState(false);
 
-    // Load workouts on mount
-    useEffect(() => {
-        getWorkouts()
-            .then((data) => {
-                setWorkouts(data);
-                if (data.length > 0) setSelectedId(data[0].id);
-            })
-            .catch(console.error)
-            .finally(() => setLoadingWorkouts(false));
-    }, []);
+    const { data: workouts = [], isLoading: loadingWorkouts } = useQuery({
+        queryKey: ['workouts'],
+        queryFn: getWorkouts
+    });
 
-    // Load exercises when selection changes
+    // Set initial selection
     useEffect(() => {
-        if (!selectedId) { setExercises([]); return; }
-        setLoadingExercises(true);
-        getExercisesByWorkout(selectedId)
-            .then(setExercises)
-            .catch(console.error)
-            .finally(() => setLoadingExercises(false));
-    }, [selectedId]);
+        if (workouts.length > 0 && !selectedId) {
+            setSelectedId(workouts[0].id);
+        }
+    }, [workouts, selectedId]);
+
+    const { data: exercises = [], isLoading: loadingExercises } = useQuery({
+        queryKey: ['exercises', selectedId],
+        queryFn: () => getExercisesByWorkout(selectedId),
+        enabled: !!selectedId
+    });
+
+    const { data: lastSession = {} } = useQuery({
+        queryKey: ['last-session', selectedId],
+        queryFn: () => getLastSessionData(selectedId, true),
+        enabled: !!selectedId
+    });
 
     const currentWorkout = workouts.find((w) => w.id === selectedId);
 
@@ -44,8 +43,6 @@ export default function ViewWorkouts() {
                 <div className="flex flex-col gap-sm">
                     <div className="skeleton" style={{ height: 48, borderRadius: 'var(--radius-sm)' }} />
                     <div className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)', marginTop: 'var(--space-md)' }} />
-                    <div className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
-                    <div className="skeleton" style={{ height: 64, borderRadius: 'var(--radius-md)' }} />
                 </div>
             )}
 
@@ -62,18 +59,20 @@ export default function ViewWorkouts() {
             {!loadingWorkouts && workouts.length > 0 && (
                 <>
                     <div className="input-group mb-md">
-                        <select
-                            className="input-field select-field"
-                            value={selectedId}
-                            onChange={(e) => setSelectedId(e.target.value)}
-                            id="workout-selector"
-                        >
-                            {workouts.map((w) => (
-                                <option key={w.id} value={w.id}>
-                                    {w.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="select-wrapper">
+                            <select
+                                className="input-field select-field"
+                                value={selectedId}
+                                onChange={(e) => setSelectedId(e.target.value)}
+                                id="workout-selector"
+                            >
+                                {workouts.map((w) => (
+                                    <option key={w.id} value={w.id}>
+                                        {w.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Exercise list */}
@@ -102,16 +101,39 @@ export default function ViewWorkouts() {
                                 <div className="flex flex-col gap-sm">
                                     {exercises.map((ex, i) => (
                                         <div key={ex.id} className="exercise-item" id={`exercise-${ex.id}`}>
-                                            <div className="exercise-info">
-                                                <h3>
-                                                    <span className="text-muted" style={{ marginRight: 'var(--space-sm)' }}>
-                                                        {i + 1}.
-                                                    </span>
-                                                    {ex.name}
-                                                </h3>
-                                                <p>
-                                                    {ex.sets} series · {ex.rep_range} reps
-                                                </p>
+                                            <div style={{ flex: 1 }}>
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h3>
+                                                            <span className="text-muted" style={{ marginRight: 'var(--space-sm)' }}>
+                                                                {i + 1}.
+                                                            </span>
+                                                            {ex.name}
+                                                        </h3>
+                                                        <p className="text-muted" style={{ fontSize: 'var(--font-sm)' }}>
+                                                            {ex.sets} series · {ex.rep_range} reps
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {lastSession[ex.id] && (
+                                                    <div style={{
+                                                        marginTop: 'var(--space-sm)',
+                                                        padding: 'var(--space-sm)',
+                                                        background: 'var(--bg-primary)',
+                                                        borderRadius: 'var(--radius-sm)',
+                                                        borderLeft: '2px solid var(--accent-primary)'
+                                                    }}>
+                                                        <div className="label-xs" style={{ marginBottom: '4px' }}>Última sesión</div>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                            {lastSession[ex.id].sets.map((s, idx) => (
+                                                                <span key={idx} style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
+                                                                    S{idx + 1}: <strong>{s.weight}kg</strong> x {s.reps}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

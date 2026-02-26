@@ -11,11 +11,11 @@ export default function Layout() {
                 <NavLink
                     to="/"
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                    id="nav-workouts"
+                    id="nav-log"
                     end
                 >
-                    <span className="nav-icon">📋</span>
-                    <span>Workouts</span>
+                    <span className="nav-icon">🏋️</span>
+                    <span>Entrenar</span>
                 </NavLink>
 
                 <NavLink
@@ -28,12 +28,12 @@ export default function Layout() {
                 </NavLink>
 
                 <NavLink
-                    to="/log"
+                    to="/workouts"
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                    id="nav-log"
+                    id="nav-workouts"
                 >
-                    <span className="nav-icon">🏋️</span>
-                    <span>Entrenar</span>
+                    <span className="nav-icon">📋</span>
+                    <span>Workouts</span>
                 </NavLink>
             </nav>
         </div>

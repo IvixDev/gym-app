@@ -171,19 +171,26 @@ export async function getDoneExerciseIds(workoutLogId: string): Promise<Set<stri
 /**
  * Returns the last logged sets for each exercise in a workout.
  * Result is a map: exerciseId → { date, sets[] }
- * It skips today's log so hints always refer to the PREVIOUS session.
+ * If includeToday is true, it returns the absolute last session.
+ * Otherwise, it skips today's log (useful for logging hints).
  */
 export async function getLastSessionData(
-    workoutId: string
+    workoutId: string,
+    includeToday: boolean = false
 ): Promise<Record<string, { date: string; sets: { reps: number; weight: number }[] }>> {
     const today = new Date().toISOString().split('T')[0];
 
-    // Get the most recent workout log BEFORE today
-    const { data: logs, error: logsError } = await supabase
+    // Get the most recent workout log
+    let query = supabase
         .from('workout_logs')
         .select('*')
-        .eq('workout_id', workoutId)
-        .lt('date', today)
+        .eq('workout_id', workoutId);
+
+    if (!includeToday) {
+        query = query.lt('date', today);
+    }
+
+    const { data: logs, error: logsError } = await query
         .order('date', { ascending: false })
         .limit(1);
 
