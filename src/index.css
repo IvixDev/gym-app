@@ -688,6 +688,10 @@ img {
   font-weight: 500;
   box-shadow: var(--shadow-lg);
   z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
   transition: transform var(--transition-base);
   max-width: calc(var(--max-width) - var(--space-xl));
 }
