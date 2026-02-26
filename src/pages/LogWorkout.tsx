@@ -58,22 +58,26 @@ export default function LogWorkout() {
     });
 
     const { data: lastSession = {} } = useQuery({
-        queryKey: ['last-session', selectedId],
-        queryFn: () => getLastSessionData(selectedId),
+        queryKey: ['last-session', selectedId, false],
+        queryFn: () => getLastSessionData(selectedId, false),
         enabled: !!selectedId
     });
 
-    const { data: todayLog } = useQuery({
+    const { data: todayLog, isFetching: isFetchingTodayLog } = useQuery({
         queryKey: ['today-log', selectedId],
         queryFn: () => getTodayWorkoutLog(selectedId),
         enabled: !!selectedId
     });
 
-    const { data: doneToday = new Set<string>() } = useQuery({
+    const { data: doneToday = new Set<string>(), isFetching: isFetchingDone } = useQuery({
         queryKey: ['done-today', todayLog?.id],
         queryFn: () => getDoneExerciseIds(todayLog!.id),
         enabled: !!todayLog?.id
     });
+
+    // Hide exercise cards while we're confirming today's completion status
+    // to avoid the flicker of marking exercises as done then undone
+    const isDoneStateLoading = isFetchingTodayLog || (!!todayLog?.id && isFetchingDone);
 
     // Initialize log data when exercises change
     useEffect(() => {
@@ -96,7 +100,9 @@ export default function LogWorkout() {
             queryClient.invalidateQueries({ queryKey: ['today-log', selectedId] });
             queryClient.invalidateQueries({ queryKey: ['done-today'] });
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
-            queryClient.invalidateQueries({ queryKey: ['last-session', selectedId] });
+            // Invalidate both variants (with and without today) so ViewWorkouts also refreshes
+            queryClient.invalidateQueries({ queryKey: ['last-session', selectedId, false] });
+            queryClient.invalidateQueries({ queryKey: ['last-session', selectedId, true] });
             showToast('✅ Ejercicio guardado');
         },
         onError: () => {
@@ -212,7 +218,7 @@ export default function LogWorkout() {
                 </div>
             )}
 
-            {loadingExercises ? (
+            {loadingExercises || isDoneStateLoading ? (
                 <div className="flex flex-col gap-md">
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="skeleton" style={{ height: 200, borderRadius: 'var(--radius-lg)' }} />

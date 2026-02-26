@@ -24,7 +24,7 @@ export default function ViewWorkouts() {
     });
 
     const { data: lastSession = {} } = useQuery({
-        queryKey: ['last-session', selectedId],
+        queryKey: ['last-session', selectedId, true],
         queryFn: () => getLastSessionData(selectedId, true),
         enabled: !!selectedId
     });
