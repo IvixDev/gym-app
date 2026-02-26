@@ -19,7 +19,8 @@ import {
     IconX,
     IconPlus,
     IconDeviceFloppy,
-    IconAlertTriangle
+    IconAlertTriangle,
+    IconCircleCheck
 } from '@tabler/icons-react';
 
 // ─── Reusable input that works with react-hook-form register ─────────────
@@ -239,7 +240,7 @@ export default function ManageWorkouts() {
         },
         onSuccess: (w) => {
             queryClient.invalidateQueries({ queryKey: ['workouts'] });
-            msg('✅ Workout creado');
+            msg('Workout creado');
             createForm.reset();
             setNewExercises([]);
             setNoExercisesError(false);
@@ -252,7 +253,7 @@ export default function ManageWorkouts() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['workouts'] });
             setEditingName(false);
-            msg('✅ Nombre actualizado');
+            msg('Nombre actualizado');
         },
     });
 
@@ -262,7 +263,7 @@ export default function ManageWorkouts() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
             setAddingEx(false);
-            msg('✅ Ejercicio añadido');
+            msg('Ejercicio añadido');
         },
     });
 
@@ -270,7 +271,7 @@ export default function ManageWorkouts() {
         mutationFn: ({ id, fields }: { id: string; fields: any }) => updateExercise(id, fields),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
-            msg('✅ Actualizado');
+            msg('Actualizado');
         },
     });
 
@@ -278,7 +279,7 @@ export default function ManageWorkouts() {
         mutationFn: (id: string) => deleteExercise(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
-            msg('🗑️ Borrado');
+            msg('Borrado');
         },
     });
 
@@ -287,7 +288,7 @@ export default function ManageWorkouts() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['workouts'] });
             setSelectedId('new');
-            msg('🗑️ Borrado');
+            msg('Borrado');
         },
     });
 
@@ -295,7 +296,7 @@ export default function ManageWorkouts() {
     const handleCreateWorkout = createForm.handleSubmit(({ workoutName }) => {
         if (newExercises.length === 0) {
             setNoExercisesError(true);
-            msg('⚠️ Añade al menos un ejercicio');
+            msg('Añade al menos un ejercicio');
             return;
         }
         createMutation.mutate(workoutName);
@@ -313,7 +314,10 @@ export default function ManageWorkouts() {
 
     return (
         <div className="manage-workouts">
-            <div className={`toast success ${toast ? 'show' : ''}`}>{toast}</div>
+            <div className={`toast success ${toast ? 'show' : ''}`}>
+                {toast?.includes('Borrado') ? <IconTrash size={18} /> : <IconCircleCheck size={18} />}
+                {toast}
+            </div>
 
             <header className="page-header">
                 <h1>Rutinas</h1>
@@ -331,7 +335,7 @@ export default function ManageWorkouts() {
                             setAddingEx(false);
                         }}
                     >
-                        <option value="new">➕ Crear nuevo workout</option>
+                        <option value="new">Crear nuevo workout</option>
                         {workouts.length > 0 && (
                             <optgroup label="Editar existente">
                                 {workouts.map((w) => (

@@ -10,7 +10,14 @@ import {
     saveExerciseSets,
 } from '../lib/api';
 import type { Exercise } from '../types';
-import { IconDeviceFloppy, IconBarbell, IconNotes, IconConfetti } from '@tabler/icons-react';
+import {
+    IconDeviceFloppy,
+    IconBarbell,
+    IconNotes,
+    IconConfetti,
+    IconCircleCheck,
+    IconAlertCircle
+} from '@tabler/icons-react';
 
 type LastSessionMap = Record<string, { date: string; sets: { reps: number; weight: number }[] }>;
 
@@ -194,10 +201,10 @@ export default function LogWorkout() {
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
             queryClient.invalidateQueries({ queryKey: ['last-session', selectedId, false] });
             queryClient.invalidateQueries({ queryKey: ['last-session', selectedId, true] });
-            showToast('✅ Ejercicio guardado');
+            showToast('Ejercicio guardado');
         },
         onError: () => {
-            showToast('❌ Error al guardar', 'error');
+            showToast('Error al guardar', 'error');
         },
     });
 
@@ -211,6 +218,7 @@ export default function LogWorkout() {
     return (
         <div className="log-workout-page">
             <div className={`toast ${toast?.type === 'error' ? '' : 'success'} ${toast ? 'show' : ''}`}>
+                {toast?.type === 'error' ? <IconAlertCircle size={18} /> : <IconCircleCheck size={18} />}
                 {toast?.msg}
             </div>
 
