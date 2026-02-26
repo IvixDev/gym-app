@@ -48,6 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        // Prevent cross-user data leakage by clearing offline cache
+        window.localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+        window.location.href = '/login';
     };
 
     return (
