@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getWorkouts, getExercisesByWorkout, getLastSessionData } from '../lib/api';
+import { IconClipboardList, IconNotes } from '@tabler/icons-react';
 
 export default function ViewWorkouts() {
     const [selectedId, setSelectedId] = useState<string>('');
@@ -49,7 +50,7 @@ export default function ViewWorkouts() {
             {/* No workouts */}
             {!loadingWorkouts && workouts.length === 0 && (
                 <div className="empty-state">
-                    <span className="empty-icon">📋</span>
+                    <IconClipboardList size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                     <h3>Sin workouts</h3>
                     <p>Crea tu primer workout en la sección "Crear".</p>
                 </div>
@@ -93,7 +94,7 @@ export default function ViewWorkouts() {
                                 </div>
                             ) : exercises.length === 0 ? (
                                 <div className="empty-state">
-                                    <span className="empty-icon">📝</span>
+                                    <IconNotes size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                                     <h3>Sin ejercicios</h3>
                                     <p>Añade ejercicios a este workout desde la sección "Crear".</p>
                                 </div>

@@ -12,6 +12,15 @@ import {
     deleteWorkout,
 } from '../lib/api';
 import type { Exercise } from '../types';
+import {
+    IconEdit,
+    IconTrash,
+    IconCheck,
+    IconX,
+    IconPlus,
+    IconDeviceFloppy,
+    IconAlertTriangle
+} from '@tabler/icons-react';
 
 // ─── Reusable input that works with react-hook-form register ─────────────
 function FormField({
@@ -81,8 +90,12 @@ function ExerciseEditRow({
                     <p>{exercise.sets} series · {exercise.rep_range} reps</p>
                 </div>
                 <div className="exercise-actions">
-                    <button className="btn btn-secondary" style={{ padding: '4px 10px' }} onClick={() => setEditing(true)}>✏️</button>
-                    <button className="btn btn-danger" style={{ padding: '4px 10px' }} onClick={() => onDelete(exercise.id)}>🗑️</button>
+                    <button type="button" className="btn btn-secondary icon-btn" onClick={() => setEditing(true)}>
+                        <IconEdit size={18} />
+                    </button>
+                    <button type="button" className="btn btn-danger icon-btn" onClick={() => onDelete(exercise.id)}>
+                        <IconTrash size={18} />
+                    </button>
                 </div>
             </div>
         );
@@ -114,8 +127,12 @@ function ExerciseEditRow({
                 />
             </div>
             <div className="flex gap-sm">
-                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">✓ Guardar</button>
-                <button className="btn btn-secondary" type="button" onClick={() => setEditing(false)}>✕</button>
+                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">
+                    <IconCheck size={18} /> Guardar
+                </button>
+                <button className="btn btn-secondary icon-btn" type="button" onClick={() => setEditing(false)}>
+                    <IconX size={18} />
+                </button>
             </div>
         </form>
     );
@@ -158,8 +175,12 @@ function AddExerciseForm({
                 />
             </div>
             <div className="flex gap-sm">
-                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">✓ Guardar ejercicio</button>
-                <button className="btn btn-secondary" type="button" onClick={onCancel}>✕</button>
+                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">
+                    <IconCheck size={18} /> Guardar ejercicio
+                </button>
+                <button className="btn btn-secondary icon-btn" type="button" onClick={onCancel}>
+                    <IconX size={18} />
+                </button>
             </div>
         </form>
     );
@@ -339,15 +360,15 @@ export default function ManageWorkouts() {
                     {/* No exercises error */}
                     {noExercisesError && newExercises.length === 0 && (
                         <div
-                            className="error-text mb-sm"
+                            className="error-text mb-sm flex items-center gap-sm justify-center"
                             style={{
-                                textAlign: 'center',
                                 background: 'rgba(248, 113, 113, 0.1)',
                                 padding: 'var(--space-sm)',
                                 borderRadius: 'var(--radius-sm)',
                             }}
                         >
-                            ⚠️ Necesitas añadir al menos un ejercicio antes de guardar
+                            <IconAlertTriangle size={18} />
+                            Necesitas añadir al menos un ejercicio antes de guardar
                         </div>
                     )}
 
@@ -362,10 +383,11 @@ export default function ManageWorkouts() {
                                     </p>
                                 </div>
                                 <button
-                                    className="btn btn-danger"
+                                    type="button"
+                                    className="btn btn-danger icon-btn"
                                     onClick={() => setNewExercises((prev) => prev.filter((_, j) => j !== i))}
                                 >
-                                    ✕
+                                    <IconX size={18} />
                                 </button>
                             </div>
                         ))}
@@ -408,8 +430,8 @@ export default function ManageWorkouts() {
                         </button>
                     </form>
 
-                    <button className="btn btn-primary btn-full btn-lg" onClick={handleCreateWorkout}>
-                        💾 Guardar Workout
+                    <button className="btn btn-primary btn-full btn-lg flex items-center justify-center gap-sm" onClick={handleCreateWorkout}>
+                        <IconDeviceFloppy size={20} /> Guardar Workout
                     </button>
                 </div>
             ) : (
@@ -424,8 +446,8 @@ export default function ManageWorkouts() {
                                         {workouts.find((w) => w.id === selectedId)?.name}
                                     </div>
                                 </div>
-                                <button className="btn btn-secondary" onClick={() => setEditingName(true)}>
-                                    ✏️
+                                <button type="button" className="btn btn-secondary icon-btn" onClick={() => setEditingName(true)}>
+                                    <IconEdit size={18} />
                                 </button>
                             </div>
                         ) : (
@@ -435,16 +457,15 @@ export default function ManageWorkouts() {
                                     error={editNameForm.formState.errors.editName?.message}
                                     {...editNameForm.register('editName', { required: 'Obligatorio' })}
                                 />
-                                <button className="btn btn-primary" style={{ padding: '12px 16px' }} type="submit">
-                                    ✓
+                                <button className="btn btn-primary icon-btn" type="submit">
+                                    <IconCheck size={18} />
                                 </button>
                                 <button
-                                    className="btn btn-secondary"
-                                    style={{ padding: '12px 16px' }}
+                                    className="btn btn-secondary icon-btn"
                                     type="button"
                                     onClick={() => setEditingName(false)}
                                 >
-                                    ✕
+                                    <IconX size={18} />
                                 </button>
                             </form>
                         )}
@@ -467,8 +488,8 @@ export default function ManageWorkouts() {
 
                     {/* Add exercise to existing workout */}
                     {!addingEx ? (
-                        <button className="btn btn-secondary btn-full mb-md" onClick={() => setAddingEx(true)}>
-                            ➕ Añadir ejercicio
+                        <button className="btn btn-secondary btn-full mb-md flex items-center justify-center gap-sm" onClick={() => setAddingEx(true)}>
+                            <IconPlus size={18} /> Añadir ejercicio
                         </button>
                     ) : (
                         <AddExerciseForm
@@ -479,12 +500,12 @@ export default function ManageWorkouts() {
 
                     <div className="divider" />
                     <button
-                        className="btn btn-danger btn-full"
+                        className="btn btn-danger btn-full flex items-center justify-center gap-sm"
                         onClick={() => {
                             if (confirm('¿Borrar rutina completa?')) deleteWorkoutMutation.mutate();
                         }}
                     >
-                        🗑️ Eliminar Workout
+                        <IconTrash size={18} /> Eliminar Workout
                     </button>
                 </div>
             )}

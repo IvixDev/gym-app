@@ -10,6 +10,7 @@ import {
     saveExerciseSets,
 } from '../lib/api';
 import type { Exercise } from '../types';
+import { IconDeviceFloppy, IconBarbell, IconNotes, IconConfetti } from '@tabler/icons-react';
 
 type LastSessionMap = Record<string, { date: string; sets: { reps: number; weight: number }[] }>;
 
@@ -124,12 +125,12 @@ function ExerciseLogForm({
             })}
 
             <button
-                className="btn btn-primary btn-full"
+                className="btn btn-primary btn-full flex items-center justify-center gap-sm"
                 style={{ marginTop: 'var(--space-md)' }}
                 type="submit"
                 disabled={isSaving}
             >
-                {isSaving ? 'Guardando…' : '💾 Guardar ejercicio'}
+                {isSaving ? 'Guardando…' : <><IconDeviceFloppy size={20} /> Guardar ejercicio</>}
             </button>
         </form>
     );
@@ -225,7 +226,7 @@ export default function LogWorkout() {
                 />
             ) : workouts.length === 0 ? (
                 <div className="empty-state">
-                    <span className="empty-icon">🏋️</span>
+                    <IconBarbell size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                     <h3>Sin workouts</h3>
                     <p>Primero crea un workout en la sección "Rutinas".</p>
                 </div>
@@ -276,7 +277,7 @@ export default function LogWorkout() {
                 </div>
             ) : exercises.length === 0 && selectedId ? (
                 <div className="empty-state">
-                    <span className="empty-icon">📝</span>
+                    <IconNotes size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                     <h3>Sin ejercicios</h3>
                     <p>Añade ejercicios a este workout desde la sección "Rutinas".</p>
                 </div>
@@ -285,7 +286,7 @@ export default function LogWorkout() {
                     <div className="flex flex-col gap-md">
                         {exercises.filter((ex) => !doneToday.has(ex.id)).length === 0 && totalExercises > 0 && (
                             <div className="empty-state">
-                                <span className="empty-icon">🎉</span>
+                                <IconConfetti size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                                 <h3>¡Sesión completada!</h3>
                                 <p>Has registrado todos los ejercicios de hoy.</p>
                             </div>

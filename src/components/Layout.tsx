@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { IconLogout, IconBarbell, IconSettings, IconClipboardList } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Layout() {
@@ -19,7 +20,7 @@ export default function Layout() {
                     {user?.user_metadata?.full_name || user?.email || ''}
                 </span>
                 <button className="btn-logout" onClick={signOut} title="Cerrar sesión">
-                    🚪
+                    <IconLogout size={20} />
                 </button>
             </header>
 
@@ -34,7 +35,7 @@ export default function Layout() {
                     id="nav-log"
                     end
                 >
-                    <span className="nav-icon">🏋️</span>
+                    <IconBarbell className="nav-icon" size={24} stroke={1.5} />
                     <span>Entrenar</span>
                 </NavLink>
 
@@ -43,7 +44,7 @@ export default function Layout() {
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                     id="nav-create"
                 >
-                    <span className="nav-icon">⚙️</span>
+                    <IconSettings className="nav-icon" size={24} stroke={1.5} />
                     <span>Rutinas</span>
                 </NavLink>
 
@@ -52,7 +53,7 @@ export default function Layout() {
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                     id="nav-workouts"
                 >
-                    <span className="nav-icon">📋</span>
+                    <IconClipboardList className="nav-icon" size={24} stroke={1.5} />
                     <span>Workouts</span>
                 </NavLink>
             </nav>

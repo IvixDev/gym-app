@@ -1,4 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
+import { IconBarbell } from '@tabler/icons-react';
 
 export default function LoginPage() {
     const { signInWithGoogle } = useAuth();
@@ -6,7 +7,7 @@ export default function LoginPage() {
     return (
         <div className="login-page">
             <div className="login-card">
-                <div className="login-icon">🏋️</div>
+                <IconBarbell size={64} stroke={1.5} className="login-icon" style={{ color: 'var(--accent-primary)' }} />
                 <h1 className="login-title">GymTracker</h1>
                 <p className="login-subtitle">Tu tracker personal de entrenamientos</p>
 
