@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -20,7 +21,8 @@ import {
     IconPlus,
     IconDeviceFloppy,
     IconAlertTriangle,
-    IconCircleCheck
+    IconCircleCheck,
+    IconArrowLeft
 } from '@tabler/icons-react';
 
 // ─── Reusable input that works with react-hook-form register ─────────────
@@ -52,7 +54,7 @@ function FormField({
 }
 
 // ─── Exercise form types ─────────────────────────────────────────────────
-type ExerciseFormValues = { name: string; sets: string; rep_range: string };
+type ExerciseFormValues = { name: string; sets: string; rep_range: string; is_optional: boolean };
 
 // ─── Inline edit row for existing exercises ──────────────────────────────
 function ExerciseEditRow({
@@ -71,6 +73,7 @@ function ExerciseEditRow({
             name: exercise.name,
             sets: String(exercise.sets),
             rep_range: exercise.rep_range,
+            is_optional: exercise.is_optional,
         },
     });
 
@@ -79,23 +82,28 @@ function ExerciseEditRow({
             name: data.name.trim(),
             sets: parseInt(data.sets),
             rep_range: data.rep_range,
+            is_optional: data.is_optional,
         });
         setEditing(false);
     };
 
     if (!editing) {
         return (
-            <div className="exercise-item">
-                <div className="exercise-info">
-                    <h3>{exercise.name}</h3>
-                    <p>{exercise.sets} series · {exercise.rep_range} reps</p>
+            <div className={`exercise-list-item ${exercise.is_optional ? 'exercise-list-item--optional' : ''}`}>
+                <div className="exercise-list-info">
+                    <span className="exercise-section-name">
+                        {exercise.name}{exercise.is_optional && <span className="optional-tag">opcional</span>}
+                    </span>
+                    <span className="text-secondary" style={{ fontSize: 'var(--font-sm)' }}>
+                        {exercise.sets} × {exercise.rep_range}
+                    </span>
                 </div>
-                <div className="exercise-actions">
-                    <button type="button" className="btn btn-secondary icon-btn" onClick={() => setEditing(true)}>
-                        <IconEdit size={18} />
+                <div className="exercise-list-actions">
+                    <button type="button" className="btn btn-secondary icon-btn btn-sm" onClick={() => setEditing(true)}>
+                        <IconEdit size={16} />
                     </button>
-                    <button type="button" className="btn btn-danger icon-btn" onClick={() => onDelete(exercise.id)}>
-                        <IconTrash size={18} />
+                    <button type="button" className="btn btn-danger icon-btn btn-sm" onClick={() => onDelete(exercise.id)}>
+                        <IconTrash size={16} />
                     </button>
                 </div>
             </div>
@@ -103,37 +111,41 @@ function ExerciseEditRow({
     }
 
     return (
-        <form className="exercise-edit-card" onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-md">
+        <form className="exercise-form-inline" onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-xs">
                 <FormField
-                    label="Nombre"
-                    placeholder="Ej: Press Banca"
+                    placeholder="Nombre del ejercicio (ej. Press Banca)"
                     error={errors.name?.message}
                     {...register('name', { required: 'Obligatorio' })}
                 />
             </div>
-            <div className="input-row mb-md">
+            <div className="input-row mb-xs">
                 <FormField
-                    label="Series"
-                    placeholder="3"
+                    placeholder="Series (ej. 3)"
                     inputMode="numeric"
                     error={errors.sets?.message}
                     {...register('sets', { required: 'Mínimo 1', pattern: { value: /^[1-9]\d*$/, message: 'Mínimo 1' } })}
                 />
                 <FormField
-                    label="Reps"
-                    placeholder="8-12"
+                    placeholder="Reps (ej. 8-12)"
                     error={errors.rep_range?.message}
                     {...register('rep_range', { required: 'Ej: 8-12', pattern: { value: /^\d+([-\s]?\d+)?$/, message: 'Ej: 8-12' } })}
                 />
             </div>
-            <div className="flex gap-sm">
-                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">
-                    <IconCheck size={18} /> Guardar
-                </button>
-                <button className="btn btn-secondary icon-btn" type="button" onClick={() => setEditing(false)}>
-                    <IconX size={18} />
-                </button>
+            <div className="flex items-center justify-between mt-sm">
+                <label className="toggle-row mb-0">
+                    <span className="toggle-label" style={{ fontSize: '0.75rem' }}>Opcional</span>
+                    <input type="checkbox" className="toggle-input" {...register('is_optional')} />
+                    <span className="toggle-switch" style={{ transform: 'scale(0.8)', transformOrigin: 'left center' }} />
+                </label>
+                <div className="flex gap-sm">
+                    <button className="exercise-section-cancel m-0" type="button" onClick={() => setEditing(false)}>
+                        <IconX size={16} />
+                    </button>
+                    <button className="exercise-section-save m-0" type="submit">
+                        <IconCheck size={16} /> Guardar
+                    </button>
+                </div>
             </div>
         </form>
     );
@@ -147,41 +159,48 @@ function AddExerciseForm({
     onAdd: (data: ExerciseFormValues) => void;
     onCancel: () => void;
 }) {
-    const { register, handleSubmit, formState: { errors } } = useForm<ExerciseFormValues>();
+    const { register, handleSubmit, formState: { errors } } = useForm<ExerciseFormValues>({ defaultValues: { is_optional: false } });
 
     return (
-        <form className="card mb-md" onSubmit={handleSubmit(onAdd)}>
-            <h3 className="card-title mb-sm">Nuevo ejercicio</h3>
-            <div className="mb-md">
+        <form className="exercise-form-inline add-new" onSubmit={handleSubmit(onAdd)}>
+            <div className="flex items-center gap-xs mb-md">
+                <IconPlus size={16} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--text-secondary)' }}>Nuevo ejercicio</span>
+            </div>
+            <div className="mb-xs">
                 <FormField
-                    label="Nombre"
-                    placeholder="Ej: Press Francés"
+                    placeholder="Nombre del ejercicio (ej. Press Francés)"
                     error={errors.name?.message}
                     {...register('name', { required: 'Obligatorio' })}
                 />
             </div>
-            <div className="input-row mb-md">
+            <div className="input-row mb-xs">
                 <FormField
-                    label="Series"
-                    placeholder="3"
+                    placeholder="Series (ej. 3)"
                     inputMode="numeric"
                     error={errors.sets?.message}
                     {...register('sets', { required: 'Mínimo 1', pattern: { value: /^[1-9]\d*$/, message: 'Mínimo 1' } })}
                 />
                 <FormField
-                    label="Reps"
-                    placeholder="8-12"
+                    placeholder="Reps (ej. 8-12)"
                     error={errors.rep_range?.message}
                     {...register('rep_range', { required: 'Ej: 8-12', pattern: { value: /^\d+([-\s]?\d+)?$/, message: 'Ej: 8-12' } })}
                 />
             </div>
-            <div className="flex gap-sm">
-                <button className="btn btn-primary" style={{ flex: 1 }} type="submit">
-                    <IconCheck size={18} /> Guardar ejercicio
-                </button>
-                <button className="btn btn-secondary icon-btn" type="button" onClick={onCancel}>
-                    <IconX size={18} />
-                </button>
+            <div className="flex items-center justify-between mt-sm">
+                <label className="toggle-row mb-0">
+                    <span className="toggle-label" style={{ fontSize: '0.75rem' }}>Opcional</span>
+                    <input type="checkbox" className="toggle-input" {...register('is_optional')} />
+                    <span className="toggle-switch" style={{ transform: 'scale(0.8)', transformOrigin: 'left center' }} />
+                </label>
+                <div className="flex gap-sm">
+                    <button className="exercise-section-cancel m-0" type="button" onClick={onCancel}>
+                        <IconX size={16} />
+                    </button>
+                    <button className="exercise-section-save m-0" type="submit">
+                        <IconPlus size={16} /> Añadir
+                    </button>
+                </div>
             </div>
         </form>
     );
@@ -189,16 +208,19 @@ function AddExerciseForm({
 
 // ─── Main page ───────────────────────────────────────────────────────────
 export default function ManageWorkouts() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('edit');
     const queryClient = useQueryClient();
-    const [selectedId, setSelectedId] = useState<string>('new');
+    const [selectedId, setSelectedId] = useState<string>(editId || 'new');
     const [newExercises, setNewExercises] = useState<ExerciseFormValues[]>([]);
     const [editingName, setEditingName] = useState(false);
     const [addingEx, setAddingEx] = useState(false);
-    const [toast, setToast] = useState<string | null>(null);
+    const [toast, setToast] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
     const [noExercisesError, setNoExercisesError] = useState(false);
 
-    const msg = (t: string) => {
-        setToast(t);
+    const msg = (text: string, type: 'success' | 'error' = 'success') => {
+        setToast({ text, type });
         setTimeout(() => setToast(null), 2000);
     };
 
@@ -233,14 +255,14 @@ export default function ManageWorkouts() {
             const w = await createWorkout(workoutName);
             await Promise.all(
                 newExercises.map((ex, i) =>
-                    createExercise(w.id, ex.name, parseInt(ex.sets), ex.rep_range, i)
+                    createExercise(w.id, ex.name, parseInt(ex.sets), ex.rep_range, i, ex.is_optional)
                 )
             );
             return w;
         },
         onSuccess: (w) => {
             queryClient.invalidateQueries({ queryKey: ['workouts'] });
-            msg('Workout creado');
+            msg('Rutina creada');
             createForm.reset();
             setNewExercises([]);
             setNoExercisesError(false);
@@ -259,7 +281,7 @@ export default function ManageWorkouts() {
 
     const addExMutation = useMutation({
         mutationFn: (data: ExerciseFormValues) =>
-            createExercise(selectedId, data.name, parseInt(data.sets), data.rep_range, exercises.length),
+            createExercise(selectedId, data.name, parseInt(data.sets), data.rep_range, exercises.length, data.is_optional),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises', selectedId] });
             setAddingEx(false);
@@ -296,7 +318,7 @@ export default function ManageWorkouts() {
     const handleCreateWorkout = createForm.handleSubmit(({ workoutName }) => {
         if (newExercises.length === 0) {
             setNoExercisesError(true);
-            msg('Añade al menos un ejercicio');
+            msg('Añade al menos un ejercicio', 'error');
             return;
         }
         createMutation.mutate(workoutName);
@@ -314,39 +336,25 @@ export default function ManageWorkouts() {
 
     return (
         <div className="manage-workouts">
-            <div className={`toast success ${toast ? 'show' : ''}`}>
-                {toast?.includes('Borrado') ? <IconTrash size={18} /> : <IconCircleCheck size={18} />}
-                {toast}
+            <div className={`toast ${toast?.type === 'error' ? '' : 'success'} ${toast ? 'show' : ''}`}>
+                {toast?.type === 'error' ? <IconAlertTriangle size={18} /> : (toast?.text.includes('Borrado') ? <IconTrash size={18} /> : <IconCircleCheck size={18} />)}
+                {toast?.text}
             </div>
 
-            <header className="page-header">
-                <h1>Rutinas</h1>
-                <p>Gestiona tus entrenamientos</p>
-            </header>
-
-            <div className="input-group mb-md">
-                <div className="select-wrapper">
-                    <select
-                        className="input-field select-field"
-                        value={selectedId}
-                        onChange={(e) => {
-                            setSelectedId(e.target.value);
-                            setEditingName(false);
-                            setAddingEx(false);
-                        }}
-                    >
-                        <option value="new">Crear nuevo workout</option>
-                        {workouts.length > 0 && (
-                            <optgroup label="Editar existente">
-                                {workouts.map((w) => (
-                                    <option key={w.id} value={w.id}>
-                                        {w.name}
-                                    </option>
-                                ))}
-                            </optgroup>
-                        )}
-                    </select>
-                </div>
+            <div className="flex items-center gap-sm mb-md">
+                <button className="btn btn-secondary icon-btn" onClick={() => navigate('/')} title="Volver">
+                    <IconArrowLeft size={20} />
+                </button>
+                <h1 style={{
+                    fontSize: 'var(--font-xl)',
+                    fontWeight: 800,
+                    background: 'var(--accent-gradient)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                }}>
+                    {selectedId === 'new' ? 'Nueva Rutina' : 'Editar Rutina'}
+                </h1>
             </div>
 
             {selectedId === 'new' ? (
@@ -354,7 +362,7 @@ export default function ManageWorkouts() {
                     {/* Workout name */}
                     <div className="mb-md">
                         <FormField
-                            label="Nombre del workout"
+                            label="Nombre de la rutina"
                             placeholder="Ej: Push Day"
                             error={createForm.formState.errors.workoutName?.message}
                             {...createForm.register('workoutName', { required: 'Obligatorio' })}
@@ -379,39 +387,44 @@ export default function ManageWorkouts() {
                     {/* Added exercises list */}
                     <div className="flex flex-col gap-sm mb-md">
                         {newExercises.map((ex, i) => (
-                            <div key={i} className="exercise-item">
-                                <div className="exercise-info">
-                                    <h3>{ex.name}</h3>
-                                    <p>
-                                        {ex.sets}x{ex.rep_range}
-                                    </p>
+                            <div key={i} className={`exercise-list-item ${ex.is_optional ? 'exercise-list-item--optional' : ''}`}>
+                                <div className="exercise-list-info">
+                                    <span className="exercise-section-name">
+                                        {ex.name}{ex.is_optional && <span className="optional-tag">opcional</span>}
+                                    </span>
+                                    <span className="text-secondary" style={{ fontSize: 'var(--font-sm)' }}>
+                                        {ex.sets} × {ex.rep_range}
+                                    </span>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger icon-btn"
-                                    onClick={() => setNewExercises((prev) => prev.filter((_, j) => j !== i))}
-                                >
-                                    <IconX size={18} />
-                                </button>
+                                <div className="exercise-list-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-danger icon-btn btn-sm"
+                                        onClick={() => setNewExercises((prev) => prev.filter((_, j) => j !== i))}
+                                    >
+                                        <IconTrash size={16} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
 
                     {/* Add exercise to new workout */}
-                    <form className="card mb-md" onSubmit={handleAddExToNew}>
-                        <h3 className="card-title mb-sm">Añadir ejercicio</h3>
-                        <div className="mb-md">
+                    <form className="exercise-form-inline add-new" onSubmit={handleAddExToNew}>
+                        <div className="flex items-center gap-xs mb-md">
+                            <IconPlus size={16} style={{ color: 'var(--accent-primary)' }} />
+                            <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--text-secondary)' }}>Nuevo ejercicio</span>
+                        </div>
+                        <div className="mb-xs">
                             <FormField
-                                label="Nombre"
-                                placeholder="Ej: Sentadilla"
+                                placeholder="Nombre (ej. Sentadilla)"
                                 error={addExForm.formState.errors.name?.message}
                                 {...addExForm.register('name', { required: 'Obligatorio' })}
                             />
                         </div>
-                        <div className="input-row mb-md">
+                        <div className="input-row mb-xs">
                             <FormField
-                                label="Series"
-                                placeholder="3"
+                                placeholder="Series (ej. 3)"
                                 inputMode="numeric"
                                 error={addExForm.formState.errors.sets?.message}
                                 {...addExForm.register('sets', {
@@ -420,8 +433,7 @@ export default function ManageWorkouts() {
                                 })}
                             />
                             <FormField
-                                label="Reps"
-                                placeholder="8-12"
+                                placeholder="Reps (ej. 8-12)"
                                 error={addExForm.formState.errors.rep_range?.message}
                                 {...addExForm.register('rep_range', {
                                     required: 'Ej: 8-12',
@@ -429,48 +441,61 @@ export default function ManageWorkouts() {
                                 })}
                             />
                         </div>
-                        <button className="btn btn-secondary btn-full" type="submit">
-                            Guardar ejercicio
-                        </button>
+                        <div className="flex items-center justify-between mt-sm">
+                            <label className="toggle-row mb-0">
+                                <span className="toggle-label" style={{ fontSize: '0.75rem' }}>Opcional</span>
+                                <input type="checkbox" className="toggle-input" {...addExForm.register('is_optional')} />
+                                <span className="toggle-switch" style={{ transform: 'scale(0.8)', transformOrigin: 'left center' }} />
+                            </label>
+                            <button className="exercise-section-save m-0" type="submit">
+                                <IconPlus size={16} /> Añadir
+                            </button>
+                        </div>
                     </form>
 
                     <button className="btn btn-primary btn-full btn-lg flex items-center justify-center gap-sm" onClick={handleCreateWorkout}>
-                        <IconDeviceFloppy size={20} /> Guardar Workout
+                        <IconDeviceFloppy size={20} /> Guardar Rutina
                     </button>
                 </div>
             ) : (
                 <div className="edit-section">
-                    {/* Workout name */}
-                    <div className="card mb-md">
+                    {/* Routine name */}
+                    <div className="mb-lg">
                         {!editingName ? (
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <label className="label-xs">Workout</label>
-                                    <div style={{ fontWeight: 700, fontSize: '18px' }}>
-                                        {workouts.find((w) => w.id === selectedId)?.name}
-                                    </div>
+                            <div className="flex justify-between items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'var(--space-sm)' }}>
+                                <div style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                    {workouts.find((w) => w.id === selectedId)?.name}
                                 </div>
-                                <button type="button" className="btn btn-secondary icon-btn" onClick={() => setEditingName(true)}>
-                                    <IconEdit size={18} />
+                                <button type="button" className="btn btn-secondary icon-btn btn-sm" onClick={() => setEditingName(true)}>
+                                    <IconEdit size={16} />
                                 </button>
                             </div>
                         ) : (
-                            <form className="flex gap-sm items-end" onSubmit={handleUpdateName}>
-                                <FormField
-                                    label="Nuevo nombre"
-                                    error={editNameForm.formState.errors.editName?.message}
-                                    {...editNameForm.register('editName', { required: 'Obligatorio' })}
-                                />
-                                <button className="btn btn-primary icon-btn" type="submit">
-                                    <IconCheck size={18} />
-                                </button>
-                                <button
-                                    className="btn btn-secondary icon-btn"
-                                    type="button"
-                                    onClick={() => setEditingName(false)}
-                                >
-                                    <IconX size={18} />
-                                </button>
+                            <form className="flex gap-sm items-start" onSubmit={handleUpdateName}>
+                                <div style={{ flex: 1, position: 'relative' }}>
+                                    <FormField
+                                        placeholder="Nuevo nombre de la rutina"
+                                        error={editNameForm.formState.errors.editName?.message}
+                                        {...editNameForm.register('editName', { required: 'Obligatorio' })}
+                                    />
+                                </div>
+                                <div className="flex gap-sm mt-xs">
+                                    <button
+                                        className="exercise-section-cancel m-0"
+                                        type="button"
+                                        style={{ height: '44px', width: '44px' }}
+                                        onClick={() => setEditingName(false)}
+                                    >
+                                        <IconX size={18} />
+                                    </button>
+                                    <button
+                                        className="exercise-section-save m-0"
+                                        type="submit"
+                                        style={{ height: '44px', borderRadius: 'var(--radius-md)', padding: '0 12px' }}
+                                    >
+                                        <IconCheck size={18} />
+                                    </button>
+                                </div>
                             </form>
                         )}
                     </div>
@@ -492,14 +517,16 @@ export default function ManageWorkouts() {
 
                     {/* Add exercise to existing workout */}
                     {!addingEx ? (
-                        <button className="btn btn-secondary btn-full mb-md flex items-center justify-center gap-sm" onClick={() => setAddingEx(true)}>
+                        <button className="exercise-list-add-btn mb-lg" onClick={() => setAddingEx(true)}>
                             <IconPlus size={18} /> Añadir ejercicio
                         </button>
                     ) : (
-                        <AddExerciseForm
-                            onAdd={(data) => addExMutation.mutate(data)}
-                            onCancel={() => setAddingEx(false)}
-                        />
+                        <div className="mb-lg">
+                            <AddExerciseForm
+                                onAdd={(data) => addExMutation.mutate(data)}
+                                onCancel={() => setAddingEx(false)}
+                            />
+                        </div>
                     )}
 
                     <div className="divider" />
@@ -509,10 +536,11 @@ export default function ManageWorkouts() {
                             if (confirm('¿Borrar rutina completa?')) deleteWorkoutMutation.mutate();
                         }}
                     >
-                        <IconTrash size={18} /> Eliminar Workout
+                        <IconTrash size={18} /> Eliminar Rutina
                     </button>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

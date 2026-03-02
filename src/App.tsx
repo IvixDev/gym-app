@@ -4,7 +4,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
-import ViewWorkouts from './pages/ViewWorkouts';
+
 import CreateWorkout from './pages/CreateWorkout';
 import LogWorkout from './pages/LogWorkout';
 import LoginPage from './pages/LoginPage';
@@ -55,7 +55,7 @@ function ProtectedRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<LogWorkout />} />
-        <Route path="/workouts" element={<ViewWorkouts />} />
+
         <Route path="/create" element={<CreateWorkout />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,7 +17,9 @@ import {
     IconNotes,
     IconConfetti,
     IconCircleCheck,
-    IconAlertCircle
+    IconAlertCircle,
+    IconPlus,
+    IconEdit
 } from '@tabler/icons-react';
 
 type LastSessionMap = Record<string, { date: string; sets: { reps: number; weight: number }[] }>;
@@ -36,7 +39,6 @@ function ExerciseLogForm({
     onSave: (exerciseId: string, sets: { set_number: number; reps: number; weight: number }[]) => void;
     isSaving: boolean;
 }) {
-    // Build default values for this exercise's sets
     const defaultValues: SetFormValues = {};
     for (let i = 0; i < exercise.sets; i++) {
         defaultValues[`weight_${i}`] = '';
@@ -64,46 +66,49 @@ function ExerciseLogForm({
     };
 
     return (
-        <form className="log-exercise-card" onSubmit={handleSubmit(onSubmit)}>
-            <div className="log-exercise-header">
-                <div>
-                    <div className="exercise-name">{exercise.name}</div>
-                    <div className="exercise-target">
-                        {exercise.sets} series · {exercise.rep_range} reps
-                        {lastSession && (
-                            <span className="exercise-target-date">
-                                · último {formatDate(lastSession.date)}
+        <form className={`exercise-section ${exercise.is_optional ? 'exercise-section--optional' : ''}`} onSubmit={handleSubmit(onSubmit)}>
+            {/* Exercise title strip */}
+            <div className="exercise-section-header">
+                <div className="exercise-section-title">
+                    <span className="exercise-section-name">
+                        {exercise.name}
+                        {exercise.is_optional && <span className="optional-tag">opcional</span>}
+                    </span>
+                    {lastSession && (
+                        <span className="exercise-section-date">
+                            {formatDate(lastSession.date)}
+                        </span>
+                    )}
+                </div>
+
+            </div>
+
+            {/* Sets table */}
+            <div className="sets-table">
+                {/* Table header */}
+                <div className="sets-table-head">
+                    <span className="sets-col-set">SET</span>
+                    <span className="sets-col-prev">ANTERIOR</span>
+                    <span className="sets-col-input">KG</span>
+                    <span className="sets-col-input">
+                        REPS <span style={{ textTransform: 'lowercase', color: 'var(--text-muted)', fontWeight: 'normal' }}>({exercise.rep_range})</span>
+                    </span>
+                </div>
+
+                {/* Table rows */}
+                {Array.from({ length: exercise.sets }, (_, i) => {
+                    const prevSet = lastSession?.sets[i];
+                    return (
+                        <div key={i} className="sets-table-row">
+                            <span className="sets-col-set sets-row-num">{i + 1}</span>
+                            <span className="sets-col-prev sets-row-prev">
+                                {prevSet ? `${prevSet.weight}kg × ${prevSet.reps}` : '—'}
                             </span>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Column headers */}
-            <div className="set-row" style={{ marginBottom: '4px' }}>
-                <span className="set-label" />
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                    <span className="label-xs">KG</span>
-                </div>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                    <span className="label-xs">REPS</span>
-                </div>
-            </div>
-
-            {Array.from({ length: exercise.sets }, (_, i) => {
-                const prevSet = lastSession?.sets[i];
-                return (
-                    <div key={i} className="set-group">
-                        <div className="set-row">
-                            <span className="set-label">S{i + 1}</span>
-                            <div style={{ flex: 1 }} className="set-input-wrapper">
-                                {prevSet !== undefined && (
-                                    <div className="set-previous-hint">{prevSet.weight}kg</div>
-                                )}
+                            <div className="sets-col-input">
                                 <input
                                     type="text"
-                                    className={`input-field ${errors[`weight_${i}`] ? 'error' : ''}`}
-                                    placeholder={prevSet ? `${prevSet.weight}` : 'kg'}
+                                    className={`sets-input ${errors[`weight_${i}`] ? 'sets-input-error' : ''}`}
+                                    placeholder={prevSet ? `${prevSet.weight}` : '0'}
                                     inputMode="decimal"
                                     {...register(`weight_${i}`, {
                                         required: true,
@@ -111,14 +116,11 @@ function ExerciseLogForm({
                                     })}
                                 />
                             </div>
-                            <div style={{ flex: 1 }} className="set-input-wrapper">
-                                {prevSet !== undefined && (
-                                    <div className="set-previous-hint">{prevSet.reps}</div>
-                                )}
+                            <div className="sets-col-input">
                                 <input
                                     type="text"
-                                    className={`input-field ${errors[`reps_${i}`] ? 'error' : ''}`}
-                                    placeholder={prevSet ? `${prevSet.reps}` : 'reps'}
+                                    className={`sets-input ${errors[`reps_${i}`] ? 'sets-input-error' : ''}`}
+                                    placeholder={prevSet ? `${prevSet.reps}` : '0'}
                                     inputMode="numeric"
                                     {...register(`reps_${i}`, {
                                         required: true,
@@ -127,17 +129,21 @@ function ExerciseLogForm({
                                 />
                             </div>
                         </div>
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
 
+            {/* Save button */}
             <button
-                className="btn btn-primary btn-full flex items-center justify-center gap-sm"
-                style={{ marginTop: 'var(--space-md)' }}
+                className="exercise-section-save"
                 type="submit"
                 disabled={isSaving}
             >
-                {isSaving ? 'Guardando…' : <><IconDeviceFloppy size={20} /> Guardar ejercicio</>}
+                {isSaving ? (
+                    <><span className="spinner" /> Guardando…</>
+                ) : (
+                    <><IconDeviceFloppy size={16} /> Guardar</>
+                )}
             </button>
         </form>
     );
@@ -145,6 +151,7 @@ function ExerciseLogForm({
 
 // ─── Main page ───────────────────────────────────────────────────────────
 export default function LogWorkout() {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [selectedId, setSelectedId] = useState<string>('');
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
@@ -212,8 +219,9 @@ export default function LogWorkout() {
         saveMutation.mutate({ exerciseId, sets });
     };
 
-    const totalDone = doneToday.size;
-    const totalExercises = exercises.length;
+    const requiredExercises = exercises.filter((ex) => !ex.is_optional);
+    const totalDone = requiredExercises.filter((ex) => doneToday.has(ex.id)).length;
+    const totalRequired = requiredExercises.length;
 
     return (
         <div className="log-workout-page">
@@ -235,43 +243,54 @@ export default function LogWorkout() {
             ) : workouts.length === 0 ? (
                 <div className="empty-state">
                     <IconBarbell size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
-                    <h3>Sin workouts</h3>
-                    <p>Primero crea un workout en la sección "Rutinas".</p>
+                    <h3>Sin rutinas</h3>
+                    <p>Pulsa el botón + para crear tu primera rutina.</p>
                 </div>
             ) : (
-                <div className="input-group mb-md">
-                    <div className="select-wrapper">
-                        <select
-                            id="log-workout-selector"
-                            className="input-field select-field"
-                            value={selectedId}
-                            onChange={(e) => setSelectedId(e.target.value)}
-                        >
-                            <option value="" disabled>
-                                Selecciona un entrenamiento...
-                            </option>
-                            {workouts.map((w) => (
-                                <option key={w.id} value={w.id}>
-                                    {w.name}
+                <div className="flex gap-sm items-center mb-md">
+                    <div className="input-group" style={{ flex: 1 }}>
+                        <div className="select-wrapper">
+                            <select
+                                id="log-workout-selector"
+                                className="input-field select-field"
+                                value={selectedId}
+                                onChange={(e) => setSelectedId(e.target.value)}
+                            >
+                                <option value="" disabled>
+                                    Selecciona un entrenamiento...
                                 </option>
-                            ))}
-                        </select>
+                                {workouts.map((w) => (
+                                    <option key={w.id} value={w.id}>
+                                        {w.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
+                    {selectedId && (
+                        <button
+                            className="btn btn-secondary icon-btn"
+                            title="Editar rutina"
+                            onClick={() => navigate(`/create?edit=${selectedId}`)}
+                        >
+                            <IconEdit size={20} />
+                        </button>
+                    )}
                 </div>
             )}
 
-            {!loadingExercises && totalExercises > 0 && (
+            {!loadingExercises && totalRequired > 0 && (
                 <div className="session-progress mb-md">
                     <div className="session-progress-header">
                         <span className="session-progress-label">Progreso de hoy</span>
                         <span className="session-progress-count">
-                            {totalDone}/{totalExercises}
+                            {totalDone}/{totalRequired}
                         </span>
                     </div>
                     <div className="session-progress-bar">
                         <div
                             className="session-progress-fill"
-                            style={{ width: `${(totalDone / totalExercises) * 100}%` }}
+                            style={{ width: `${totalRequired > 0 ? (totalDone / totalRequired) * 100 : 0}%` }}
                         />
                     </div>
                 </div>
@@ -287,16 +306,16 @@ export default function LogWorkout() {
                 <div className="empty-state">
                     <IconNotes size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                     <h3>Sin ejercicios</h3>
-                    <p>Añade ejercicios a este workout desde la sección "Rutinas".</p>
+                    <p>Añade ejercicios desde el botón de editar.</p>
                 </div>
             ) : (
                 selectedId && (
                     <div className="flex flex-col gap-md">
-                        {exercises.filter((ex) => !doneToday.has(ex.id)).length === 0 && totalExercises > 0 && (
+                        {requiredExercises.filter((ex) => !doneToday.has(ex.id)).length === 0 && requiredExercises.length > 0 && (
                             <div className="empty-state">
                                 <IconConfetti size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                                 <h3>¡Sesión completada!</h3>
-                                <p>Has registrado todos los ejercicios de hoy.</p>
+                                <p>Has completado tu objetivo de hoy.</p>
                             </div>
                         )}
 
@@ -314,6 +333,16 @@ export default function LogWorkout() {
                     </div>
                 )
             )}
+
+            {/* Floating Action Button */}
+            <button
+                className="fab"
+                title="Crear nuevo workout"
+                onClick={() => navigate('/create')}
+                id="fab-create-workout"
+            >
+                <IconPlus size={28} stroke={2.5} />
+            </button>
         </div>
     );
 }

@@ -40,6 +40,7 @@ export async function getExercisesByWorkout(workoutId: string): Promise<Exercise
         .from('exercises')
         .select('*')
         .eq('workout_id', workoutId)
+        .order('is_optional', { ascending: true })
         .order('order_index', { ascending: true });
 
     if (error) throw error;
@@ -51,7 +52,8 @@ export async function createExercise(
     name: string,
     sets: number,
     repRange: string,
-    orderIndex: number
+    orderIndex: number,
+    isOptional: boolean = false
 ): Promise<Exercise> {
     const { data, error } = await supabase
         .from('exercises')
@@ -61,6 +63,7 @@ export async function createExercise(
             sets,
             rep_range: repRange,
             order_index: orderIndex,
+            is_optional: isOptional,
         })
         .select()
         .single();
@@ -81,7 +84,7 @@ export async function updateWorkout(id: string, name: string): Promise<void> {
 
 export async function updateExercise(
     id: string,
-    fields: { name?: string; sets?: number; rep_range?: string }
+    fields: { name?: string; sets?: number; rep_range?: string; is_optional?: boolean }
 ): Promise<void> {
     const { error } = await supabase.from('exercises').update(fields).eq('id', id);
     if (error) throw error;

@@ -12,6 +12,7 @@ export interface Exercise {
     sets: number;
     rep_range: string; // e.g. "8-12"
     order_index: number;
+    is_optional: boolean;
 }
 
 /* === Workout Logs === */
@@ -36,6 +37,7 @@ export interface ExerciseFormData {
     name: string;
     sets: number;
     rep_range: string;
+    is_optional: boolean;
 }
 
 export interface SetLogInput {
