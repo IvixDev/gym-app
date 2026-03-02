@@ -26,5 +26,10 @@ CLAUDE.md
 GEMINI.md
 .env
 .env.*
-supabase/*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
+# Supabase
+supabase/
