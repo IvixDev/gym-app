@@ -30,6 +30,7 @@ export interface ExerciseLog {
     set_number: number;
     reps: number;
     weight: number;
+    rir: number | null;
 }
 
 /* === Form helpers === */
@@ -44,9 +45,17 @@ export interface SetLogInput {
     set_number: number;
     reps: number | '';
     weight: number | '';
+    rir: number | '';
 }
 
 export interface ExerciseLogInput {
     exercise_id: string;
     sets: SetLogInput[];
+}
+
+export interface ExerciseHistoryData {
+    date: string;
+    volume: number;
+    estimated1RM: number;
+    sets: { weight: number; reps: number; rir: number | null }[];
 }

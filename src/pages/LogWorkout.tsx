@@ -13,16 +13,15 @@ import {
 import type { Exercise } from '../types';
 import {
     IconDeviceFloppy,
-    IconBarbell,
     IconNotes,
     IconConfetti,
     IconCircleCheck,
     IconAlertCircle,
     IconPlus,
-    IconEdit
+    IconEdit,
 } from '@tabler/icons-react';
 
-type LastSessionMap = Record<string, { date: string; sets: { reps: number; weight: number }[] }>;
+type LastSessionMap = Record<string, { date: string; sets: { reps: number; weight: number; rir: number | null }[] }>;
 
 // ─── Dynamic form type: { weight_0: string, reps_0: string, weight_1: string, ... }
 type SetFormValues = Record<string, string>;
@@ -35,14 +34,15 @@ function ExerciseLogForm({
     isSaving,
 }: {
     exercise: Exercise;
-    lastSession?: { date: string; sets: { reps: number; weight: number }[] };
-    onSave: (exerciseId: string, sets: { set_number: number; reps: number; weight: number }[]) => void;
+    lastSession?: { date: string; sets: { reps: number; weight: number; rir: number | null }[] };
+    onSave: (exerciseId: string, sets: { set_number: number; reps: number; weight: number; rir: number | null }[]) => void;
     isSaving: boolean;
 }) {
     const defaultValues: SetFormValues = {};
     for (let i = 0; i < exercise.sets; i++) {
         defaultValues[`weight_${i}`] = '';
         defaultValues[`reps_${i}`] = '';
+        defaultValues[`rir_${i}`] = '';
     }
 
     const {
@@ -56,6 +56,7 @@ function ExerciseLogForm({
             set_number: i + 1,
             reps: Number(data[`reps_${i}`]),
             weight: Number(data[`weight_${i}`]),
+            rir: data[`rir_${i}`] === '' ? null : Number(data[`rir_${i}`]),
         }));
         onSave(exercise.id, sets);
     };
@@ -93,6 +94,7 @@ function ExerciseLogForm({
                     <span className="sets-col-input">
                         REPS <span style={{ textTransform: 'lowercase', color: 'var(--text-muted)', fontWeight: 'normal' }}>({exercise.rep_range})</span>
                     </span>
+                    <span className="sets-col-input">RIR</span>
                 </div>
 
                 {/* Table rows */}
@@ -125,6 +127,18 @@ function ExerciseLogForm({
                                     {...register(`reps_${i}`, {
                                         required: true,
                                         pattern: /^[1-9]\d*$/,
+                                    })}
+                                />
+                            </div>
+                            <div className="sets-col-input">
+                                <input
+                                    type="text"
+                                    className={`sets-input ${errors[`rir_${i}`] ? 'sets-input-error' : ''}`}
+                                    placeholder={prevSet?.rir !== undefined && prevSet?.rir !== null ? `${prevSet.rir}` : '—'}
+                                    inputMode="numeric"
+                                    {...register(`rir_${i}`, {
+                                        required: false,
+                                        pattern: /^[0-9]\d*$/,
                                     })}
                                 />
                             </div>
@@ -242,9 +256,12 @@ export default function LogWorkout() {
                 />
             ) : workouts.length === 0 ? (
                 <div className="empty-state">
-                    <IconBarbell size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
+                    <IconPlus size={48} stroke={1.5} className="empty-icon" style={{ opacity: 0.5 }} />
                     <h3>Sin rutinas</h3>
-                    <p>Pulsa el botón + para crear tu primera rutina.</p>
+                    <p className="mb-md">Crea tu primera rutina para empezar.</p>
+                    <button className="btn btn-primary" onClick={() => navigate('/create')}>
+                        Crear rutina
+                    </button>
                 </div>
             ) : (
                 <div className="flex gap-sm items-center mb-md">

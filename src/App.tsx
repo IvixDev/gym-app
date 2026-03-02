@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 
 import CreateWorkout from './pages/CreateWorkout';
 import LogWorkout from './pages/LogWorkout';
+import Statistics from './pages/Statistics';
 import LoginPage from './pages/LoginPage';
 
 const queryClient = new QueryClient({
@@ -57,6 +58,7 @@ function ProtectedRoutes() {
         <Route path="/" element={<LogWorkout />} />
 
         <Route path="/create" element={<CreateWorkout />} />
+        <Route path="/stats" element={<Statistics />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

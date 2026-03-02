@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Workout, Exercise, WorkoutLog, ExerciseLog } from '../types';
+import type { Workout, Exercise, WorkoutLog, ExerciseLog, ExerciseHistoryData } from '../types';
 
 // ============================================================
 // WORKOUTS
@@ -180,7 +180,7 @@ export async function getDoneExerciseIds(workoutLogId: string): Promise<Set<stri
 export async function getLastSessionData(
     workoutId: string,
     includeToday: boolean = false
-): Promise<Record<string, { date: string; sets: { reps: number; weight: number }[] }>> {
+): Promise<Record<string, { date: string; sets: { reps: number; weight: number; rir: number | null }[] }>> {
     const today = new Date().toISOString().split('T')[0];
 
     // Get the most recent workout log
@@ -203,12 +203,12 @@ export async function getLastSessionData(
 
     const exerciseLogs = await getExerciseLogsByWorkoutLog(lastLog.id);
 
-    const result: Record<string, { date: string; sets: { reps: number; weight: number }[] }> = {};
+    const result: Record<string, { date: string; sets: { reps: number; weight: number; rir: number | null }[] }> = {};
     for (const log of exerciseLogs) {
         if (!result[log.exercise_id]) {
             result[log.exercise_id] = { date: lastLog.date, sets: [] };
         }
-        result[log.exercise_id].sets.push({ reps: log.reps, weight: Number(log.weight) });
+        result[log.exercise_id].sets.push({ reps: log.reps, weight: Number(log.weight), rir: log.rir });
     }
     return result;
 }
@@ -220,7 +220,7 @@ export async function getLastSessionData(
 export async function saveExerciseSets(
     workoutId: string,
     exerciseId: string,
-    sets: Array<{ set_number: number; reps: number; weight: number }>
+    sets: Array<{ set_number: number; reps: number; weight: number; rir: number | null }>
 ): Promise<void> {
     const workoutLog = await getOrCreateTodayWorkoutLog(workoutId);
 
@@ -230,8 +230,73 @@ export async function saveExerciseSets(
         set_number: s.set_number,
         reps: s.reps,
         weight: s.weight,
+        rir: s.rir,
     }));
 
     const { error } = await supabase.from('exercise_logs').insert(rows);
     if (error) throw error;
+}
+
+/**
+ * Gets all historical data for exercises in a given workout.
+ */
+export async function getWorkoutHistory(workoutId: string): Promise<Record<string, ExerciseHistoryData[]>> {
+    // 1. Get all workout logs for this workout
+    const { data: workoutLogs, error: wlError } = await supabase
+        .from('workout_logs')
+        .select('id, date')
+        .eq('workout_id', workoutId)
+        .order('date', { ascending: true });
+
+    if (wlError) throw wlError;
+    if (!workoutLogs || workoutLogs.length === 0) return {};
+
+    const logIds = workoutLogs.map(l => l.id);
+
+    // 2. Get all exercise logs for these workout logs
+    const { data: exerciseLogs, error: elError } = await supabase
+        .from('exercise_logs')
+        .select('*')
+        .in('workout_log_id', logIds);
+
+    if (elError) throw elError;
+
+    // 3. Group and calculate metrics
+    const history: Record<string, ExerciseHistoryData[]> = {};
+
+    workoutLogs.forEach(wl => {
+        const logsForThisDate = (exerciseLogs || []).filter(el => el.workout_log_id === wl.id);
+
+        // Group by exercise_id within this date
+        const byExercise: Record<string, ExerciseLog[]> = {};
+        logsForThisDate.forEach(log => {
+            if (!byExercise[log.exercise_id]) byExercise[log.exercise_id] = [];
+            byExercise[log.exercise_id].push(log);
+        });
+
+        Object.entries(byExercise).forEach(([exId, logs]) => {
+            if (!history[exId]) history[exId] = [];
+
+            // Calculate Volume: Sum(weight * reps)
+            const volume = logs.reduce((acc, curr) => acc + (Number(curr.weight) * Number(curr.reps)), 0);
+
+            // Calculate Estimated 1RM: Max of Epley for each set
+            // formula: weight * (1 + (reps / 30))
+            const estimated1RM = Math.max(...logs.map(l => {
+                const w = Number(l.weight);
+                const r = Number(l.reps);
+                if (r <= 1) return w;
+                return w * (1 + (r / 30));
+            }));
+
+            history[exId].push({
+                date: wl.date,
+                volume: Math.round(volume * 100) / 100,
+                estimated1RM: Math.round(estimated1RM * 100) / 100,
+                sets: logs.map(l => ({ weight: Number(l.weight), reps: Number(l.reps), rir: l.rir }))
+            });
+        });
+    });
+
+    return history;
 }

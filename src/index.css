@@ -184,7 +184,7 @@ img {
 /* ===== FLOATING ACTION BUTTON ===== */
 .fab {
   position: fixed;
-  bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(64px + var(--space-lg) + env(safe-area-inset-bottom, 0px));
   right: var(--space-lg);
   width: 56px;
   height: 56px;
@@ -414,7 +414,7 @@ img {
   font-size: 10px;
   color: var(--text-muted);
   position: absolute;
-  right: 16px;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -423,12 +423,8 @@ img {
 .select-field {
   appearance: none;
   -webkit-appearance: none;
-  /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b8ba3' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); */
-  /* Removed */
-  background-repeat: no-repeat;
-  background-position: right var(--space-md) center;
-  padding-right: 40px;
-  /* Modified */
+  -moz-appearance: none;
+  padding-right: 48px;
   cursor: pointer;
 }
 
@@ -596,7 +592,7 @@ img {
 .sets-table-head,
 .sets-table-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr 1fr;
+  grid-template-columns: 36px 1fr 1fr 1fr 38px;
   gap: var(--space-xs);
   align-items: center;
 }
@@ -980,6 +976,14 @@ img {
   margin-top: var(--space-lg);
 }
 
+.mb-xl {
+  margin-bottom: var(--space-xl);
+}
+
+.mb-2xl {
+  margin-bottom: var(--space-2xl);
+}
+
 .mb-xs {
   margin-bottom: var(--space-xs);
 }
@@ -1110,4 +1114,47 @@ img {
 
 .w-full {
   width: 100%;
+}
+
+/* ===== BOTTOM NAVIGATION ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+}
+
+.bottom-nav .nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.bottom-nav .nav-link.active {
+  color: var(--accent-primary);
+}
+
+.bottom-nav .nav-link:hover {
+  color: var(--text-primary);
+}
+
+.bottom-nav .nav-link.active span {
+  font-weight: 600;
 }

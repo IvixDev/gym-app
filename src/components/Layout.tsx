@@ -1,5 +1,5 @@
-import { Outlet } from 'react-router-dom';
-import { IconLogout } from '@tabler/icons-react';
+import { NavLink, Outlet } from 'react-router-dom';
+import { IconLogout, IconBarbell, IconChartBar } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Layout() {
@@ -24,9 +24,21 @@ export default function Layout() {
                 </button>
             </header>
 
-            <main className="page-content">
+            <main className="page-content" style={{ paddingBottom: '80px' }}>
                 <Outlet />
             </main>
+
+            {/* Bottom Navigation */}
+            <nav className="bottom-nav">
+                <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                    <IconBarbell size={24} />
+                    <span>Entrenar</span>
+                </NavLink>
+                <NavLink to="/stats" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                    <IconChartBar size={24} />
+                    <span>Estadísticas</span>
+                </NavLink>
+            </nav>
         </div>
     );
 }
