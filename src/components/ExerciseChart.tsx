@@ -100,38 +100,53 @@ export default function ExerciseChart({ data }: ExerciseChartProps) {
     return (
         <div style={{ width: '100%' }}>
             {/* Metric toggles */}
-            <div className="flex gap-sm mb-sm justify-center">
+            <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--space-xs)',
+                justifyContent: 'center',
+                marginBottom: 'var(--space-sm)'
+            }}>
                 <button
-                    className="btn btn-sm"
+                    className="btn"
                     style={{
                         background: metric === 'estimated1RM' ? 'var(--accent-primary)' : 'transparent',
                         color: metric === 'estimated1RM' ? 'white' : 'var(--text-muted)',
-                        borderColor: metric === 'estimated1RM' ? 'var(--accent-primary)' : 'var(--border-color)',
-                        borderRadius: 'var(--radius-full)'
+                        border: `1px solid ${metric === 'estimated1RM' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-full)',
+                        padding: '6px 12px',
+                        fontSize: 'var(--font-xs)',
+                        whiteSpace: 'nowrap'
                     }}
                     onClick={() => setMetric('estimated1RM')}
                 >
-                    1RM Estimado
+                    1RM
                 </button>
                 <button
-                    className="btn btn-sm"
+                    className="btn"
                     style={{
                         background: metric === 'volume' ? 'var(--accent-primary)' : 'transparent',
                         color: metric === 'volume' ? 'white' : 'var(--text-muted)',
-                        borderColor: metric === 'volume' ? 'var(--accent-primary)' : 'var(--border-color)',
-                        borderRadius: 'var(--radius-full)'
+                        border: `1px solid ${metric === 'volume' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-full)',
+                        padding: '6px 12px',
+                        fontSize: 'var(--font-xs)',
+                        whiteSpace: 'nowrap'
                     }}
                     onClick={() => setMetric('volume')}
                 >
-                    Volumen Total
+                    Volumen
                 </button>
                 <button
-                    className="btn btn-sm"
+                    className="btn"
                     style={{
                         background: metric === 'rir' ? 'var(--accent-primary)' : 'transparent',
                         color: metric === 'rir' ? 'white' : 'var(--text-muted)',
-                        borderColor: metric === 'rir' ? 'var(--accent-primary)' : 'var(--border-color)',
-                        borderRadius: 'var(--radius-full)'
+                        border: `1px solid ${metric === 'rir' ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-full)',
+                        padding: '6px 12px',
+                        fontSize: 'var(--font-xs)',
+                        whiteSpace: 'nowrap'
                     }}
                     onClick={() => setMetric('rir')}
                 >
